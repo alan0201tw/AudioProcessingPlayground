@@ -130,9 +130,13 @@ static int callback(
     int l = 0;
     for(i = 0; i < frameCount; ++i)
     {
-        out[2*i] = tmp[2*l];
-        out[2*i+1] = tmp[2*l+1];
-        l += 4;
+        // out[2*i] = tmp[2*l];
+        // out[2*i+1] = tmp[2*l+1];
+
+        out[2*i] = tmp[2*l] * tmp[2*l+1]; // ring modulation
+        out[2*i+1] = 0.5f * (tmp[2*l] + tmp[2*l+1]); // mixing
+
+        l += 2;
         if(l > frameCount)
             l %= frameCount;
     }
