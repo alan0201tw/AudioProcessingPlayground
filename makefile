@@ -1,7 +1,7 @@
 # Compile Info
-CC := clang++
-SRCEXT := cpp
-CFLAGS := -O3 -std=gnu++17 -pthread -g -Wall
+CC := gcc
+SRCEXT := c
+CFLAGS := -O3 -std=c11 -pthread -g -Wall
 # use -isystem on vender headers to suppress warning
 INCDIR := -I include -I vendor/include
 LINKS := -ldl -lrt -lm -lasound -lportaudio -lsndfile

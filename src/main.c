@@ -6,10 +6,9 @@
 //  Copyright (c) 2014 Matthew Hosack. All rights reserved.
 //
 
-#include <cstdio>
-#include <cstring>
-#include <cmath>
-#include <iostream>
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
 
 #include "sndfile.h"
 #include "portaudio.h"
@@ -30,7 +29,7 @@ int main(int argc, const char * argv[])
     PaError error;
     callback_data_s data;
         
-    const auto fileName = "audio_clips/sample.wav";
+    const char* fileName = "audio_clips/sample.wav";
 
     fprintf(stderr, "Using file name = %s\n", fileName);
 
@@ -104,7 +103,7 @@ int main(int argc, const char * argv[])
 static int callback(
     const void                     *input
     ,void                           *output
-    ,unsigned long                   frameCount
+    ,unsigned long                   frame_count
     ,const PaStreamCallbackTimeInfo *timeInfo
     ,PaStreamCallbackFlags           statusFlags
     ,void                           *userData
@@ -118,31 +117,20 @@ static int callback(
     p_data = (callback_data_s*)userData;
 
     /* clear output buffer */
-    memset(out, 0, sizeof(float) * frameCount * p_data->info.channels);
+    memset(out, 0, sizeof(float) * frame_count * p_data->info.channels);
 
     /* read directly into output buffer */
-    num_read = sf_read_float(p_data->file, out, frameCount * p_data->info.channels);
+    num_read = sf_read_float(p_data->file, out, frame_count * p_data->info.channels);
 
     // increase frequency
     float tmp[2048];
-    memcpy(tmp, out, sizeof(float) * frameCount * p_data->info.channels);
-    int i;
-    int l = 0;
-    for(i = 0; i < frameCount; ++i)
-    {
-        // out[2*i] = tmp[2*l];
-        // out[2*i+1] = tmp[2*l+1];
+    memcpy(tmp, out, sizeof(float) * frame_count * p_data->info.channels);
 
-        out[2*i] = tmp[2*l] * tmp[2*l+1]; // ring modulation
-        out[2*i+1] = 0.5f * (tmp[2*l] + tmp[2*l+1]); // mixing
-
-        l += 2;
-        if(l > frameCount)
-            l %= frameCount;
-    }
+    PaUt_tune_frequency(tmp, frame_count, 1u, out);
+    // DFT(tmp, frame_count * 2, output);
 
     /*  If we couldn't read a full frameCount of samples we've reached EOF */
-    if (num_read < frameCount)
+    if (num_read < frame_count)
     {
         return paComplete;
     }
