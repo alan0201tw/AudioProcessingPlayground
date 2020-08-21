@@ -4,7 +4,7 @@ SRCEXT := c
 CFLAGS := -O3 -std=c11 -pthread -g -Wall
 # use -isystem on vender headers to suppress warning
 INCDIR := -I include -I vendor/include
-LINKS := -ldl -lrt -lm -lasound -lportaudio -lsndfile
+LINKS := -ldl -lrt -lm -lasound -lportaudio -lsndfile -lGL -lglfw -lGLU
 
 # Source Info, target = cpplox, entry should be in cpplox.cpp
 SRCDIR := src

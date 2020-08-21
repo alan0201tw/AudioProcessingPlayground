@@ -9,19 +9,29 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#ifndef M_PI
+#define M_PI (3.14159265358979323846f)
+#endif
 
+// audio processing and audio file I/O
 #include "sndfile.h"
 #include "portaudio.h"
+// fourier transform library
+#include "kiss_fft.h"
+// rendering dependencies
+#include "render_util.h"
 
 #include "util.h"
 
-#define FRAMES_PER_BUFFER   (512)
+#define FRAMES_PER_BUFFER (512)
 
-static int callback(    const void *input, void *output,
-                        unsigned long frameCount,
-                        const PaStreamCallbackTimeInfo* timeInfo,
-                        PaStreamCallbackFlags statusFlags,
-                        void *userData );
+int graph[FRAMES_PER_BUFFER / 2];
+
+static int callback(const void *input, void *output,
+                    unsigned long frameCount,
+                    const PaStreamCallbackTimeInfo* timeInfo,
+                    PaStreamCallbackFlags statusFlags,
+                    void *userData );
 
 int main(int argc, const char * argv[])
 {
@@ -29,7 +39,8 @@ int main(int argc, const char * argv[])
     PaError error;
     callback_data_s data;
         
-    const char* fileName = "audio_clips/sample.wav";
+    // const char* fileName = "audio_clips/sample.wav";
+    const char* fileName = "audio_clips/sample_music.wav";
 
     fprintf(stderr, "Using file name = %s\n", fileName);
 
@@ -73,12 +84,44 @@ int main(int argc, const char * argv[])
         return 1;
     }
 
-    /* Run until EOF is reached */
-    while(Pa_IsStreamActive(stream))
+    // setup OpenGL context
+    GLFWwindow* window = gfx_init();
+    while (!glfwWindowShouldClose(window) && Pa_IsStreamActive(stream))
     {
-        Pa_Sleep(100);
-    }
+        glClear(GL_COLOR_BUFFER_BIT);
+        glMatrixMode( GL_PROJECTION );
+        glLoadIdentity();
 
+        Pa_Sleep(100);
+
+        float ortho_size_x = (float)512.0f;
+        float ortho_size_y = (float)512.0f;
+    
+        // gluOrtho2D sets up a two-dimensional orthographic viewing region.
+        // This is equivalent to calling glOrtho with near = -1 and far = 1 .
+        glOrtho(
+            0, ortho_size_x,
+            0, ortho_size_y,
+            -1, 1);
+
+        glBegin(GL_QUADS);
+        {
+            glColor3f(1.0f, 1.0f, 1.0f);
+            for(size_t i = 0; i < FRAMES_PER_BUFFER / 2; ++i)
+            {
+                glVertex2f( (float)2*i, 0.0f );
+                glVertex2f( (float)2*(i+1), 0.0f );
+                glVertex2f( (float)2*(i+1), abs(graph[i]) * 3.0f );
+                glVertex2f( (float)2*i, abs(graph[i]) * 3.0f );
+                // printf("%f \n", abs(graph[i]) * 5.0f);
+            }
+        }
+        glEnd();
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+    
     /* Close the soundfile */
     sf_close(data.file);
 
@@ -96,7 +139,7 @@ int main(int argc, const char * argv[])
         fprintf(stderr, "Problem terminating\n");
         return 1;
     }
-    
+
     return 0;
 }
 
@@ -126,8 +169,37 @@ static int callback(
     float tmp[2048];
     memcpy(tmp, out, sizeof(float) * frame_count * p_data->info.channels);
 
-    PaUt_tune_frequency(tmp, frame_count, 1u, out);
-    // DFT(tmp, frame_count * 2, output);
+    // PaUt_tune_frequency(tmp, frame_count, 1u, out);
+
+    // perform fft
+
+    kiss_fft_cpx complex_input[frame_count];
+    kiss_fft_cpx complex_output[frame_count];
+
+    for(size_t i = 0, j = 0; i < frame_count; ++i, ++j)
+    {
+        float multiplier = 0.5f * 
+            (1.0f - cos(2.0f * M_PI * j / (frame_count-1)));
+
+        complex_input[j].r = multiplier * tmp[i];
+        complex_input[j].i = 0.0f;
+    }
+
+    FFT(complex_input, frame_count, complex_output);
+
+    for(size_t i = 0; i < frame_count / 2; i++ )
+    {
+		float val = 
+            sqrt((complex_output[i].r * complex_output[i].r) 
+            + (complex_output[i].i * complex_output[i].i));
+        
+        graph[i] = (val > 0) ? log(val) * 10 : 0;
+
+        // printf("%d \n", graph[i]);
+    }
+    // printf("____________\n");
+
+    // end of - perform fft
 
     /*  If we couldn't read a full frameCount of samples we've reached EOF */
     if (num_read < frame_count)
