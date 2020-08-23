@@ -6,7 +6,7 @@
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 
-GLFWwindow * gfx_init()
+GLFWwindow * gfx_init(size_t window_width, size_t window_height)
 {
     if (!glfwInit())
         exit(EXIT_FAILURE);
@@ -15,7 +15,7 @@ GLFWwindow * gfx_init()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     GLFWwindow* window = glfwCreateWindow(
-        512, 512, "OpenGL Window", NULL, NULL);
+        window_width, window_height, "OpenGL Window", NULL, NULL);
     if (window == NULL)
     {
         glfwTerminate();

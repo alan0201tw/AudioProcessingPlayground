@@ -85,7 +85,7 @@ int main(int argc, const char * argv[])
     }
 
     // setup OpenGL context
-    GLFWwindow* window = gfx_init();
+    GLFWwindow* window = gfx_init(FRAMES_PER_BUFFER, 512);
     while (!glfwWindowShouldClose(window) && Pa_IsStreamActive(stream))
     {
         glClear(GL_COLOR_BUFFER_BIT);
@@ -94,7 +94,7 @@ int main(int argc, const char * argv[])
 
         Pa_Sleep(100);
 
-        float ortho_size_x = (float)512.0f;
+        float ortho_size_x = (float)FRAMES_PER_BUFFER;
         float ortho_size_y = (float)512.0f;
     
         // gluOrtho2D sets up a two-dimensional orthographic viewing region.
@@ -106,14 +106,19 @@ int main(int argc, const char * argv[])
 
         glBegin(GL_QUADS);
         {
-            glColor3f(1.0f, 1.0f, 1.0f);
             for(size_t i = 0; i < FRAMES_PER_BUFFER / 2; ++i)
             {
+                float absVal = (float)abs(graph[i]);
+                
+                glColor3f(
+                    (float)i / (FRAMES_PER_BUFFER / 2), 
+                    absVal / 150, 
+                    1.0f);
+
                 glVertex2f( (float)2*i, 0.0f );
                 glVertex2f( (float)2*(i+1), 0.0f );
                 glVertex2f( (float)2*(i+1), abs(graph[i]) * 3.0f );
                 glVertex2f( (float)2*i, abs(graph[i]) * 3.0f );
-                // printf("%f \n", abs(graph[i]) * 5.0f);
             }
         }
         glEnd();
@@ -193,7 +198,7 @@ static int callback(
             sqrt((complex_output[i].r * complex_output[i].r) 
             + (complex_output[i].i * complex_output[i].i));
         
-        graph[i] = (val > 0) ? log(val) * 10 : 0;
+        graph[i] = (val > 0) ? (log(val) * 10) : 0;
 
         // printf("%d \n", graph[i]);
     }
