@@ -172,16 +172,27 @@ static int callback(
     memset(out, 0, sizeof(float) * frame_count * p_data->info.channels);
 
     /* read directly into output buffer */
+    // sf_seek(p_data->file, 0, SEEK_SET);
     num_read = sf_read_float(p_data->file, out, frame_count * p_data->info.channels);
+    // num_read = frame_count * p_data->info.channels;
+    // static int left_phase = 0;
+    // static int right_phase = 0;
+    // for(int i=0; i < FRAMES_PER_BUFFER; i++)
+    // {
+    //     out[2*i] = 0.1f * (float)sin( ((float)left_phase/(float)200.0f) * M_PI * 2.0f );  /* left */
+    //     out[2*i+1] = 0.1f * (float)sin( ((float)right_phase/(float)200.0f) * M_PI * 2.0f );  /* right */
+    //     left_phase += 10;
+    //     left_phase %= 200;
+    //     right_phase += 10;
+    //     right_phase %= 200;
+    // }
 
-    // increase frequency
     float tmp[2048];
     memcpy(tmp, out, sizeof(float) * frame_count * p_data->info.channels);
 
     // PaUt_tune_frequency(tmp, frame_count, 1u, out);
 
     // perform fft
-
     kiss_fft_cpx complex_input[frame_count];
     kiss_fft_cpx complex_output[frame_count];
 
@@ -198,16 +209,16 @@ static int callback(
 
     for(size_t i = 0; i < frame_count / 2; i++ )
     {
-		float val = 
-            sqrt((complex_output[i].r * complex_output[i].r) 
+		double val = 
+            sqrt((complex_output[i].r * complex_output[i].r)
             + (complex_output[i].i * complex_output[i].i));
         
-        graph[i] = (val > 0) ? (log(val) * 10) : 0;
+        graph[i] = (val > 0) ? (log(val) * 5) : 0;
 
-        // printf("%d \n", graph[i]);
+        // printf("complex_output[i].r = %f, complex_output[i].i = %f, val = %f, res = %d \n", 
+        //     complex_output[i].r, complex_output[i].i,
+        //     val, graph[i]);
     }
-    // printf("____________\n");
-
     // end of - perform fft
 
     /*  If we couldn't read a full frameCount of samples we've reached EOF */
