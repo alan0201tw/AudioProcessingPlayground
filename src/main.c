@@ -24,6 +24,8 @@
 #include "util.h"
 
 #define FRAMES_PER_BUFFER (512)
+#define WINDOW_WIDTH (256)
+#define WINDOW_HEIGHT (512)
 
 int graph[FRAMES_PER_BUFFER / 2];
 
@@ -85,7 +87,7 @@ int main(int argc, const char * argv[])
     }
 
     // setup OpenGL context
-    GLFWwindow* window = gfx_init(FRAMES_PER_BUFFER, 512);
+    GLFWwindow* window = gfx_init(WINDOW_WIDTH, WINDOW_HEIGHT);
     while (!glfwWindowShouldClose(window) && Pa_IsStreamActive(stream))
     {
         glClear(GL_COLOR_BUFFER_BIT);
@@ -94,8 +96,8 @@ int main(int argc, const char * argv[])
 
         Pa_Sleep(100);
 
-        float ortho_size_x = (float)FRAMES_PER_BUFFER;
-        float ortho_size_y = (float)512.0f;
+        float ortho_size_x = (float)WINDOW_WIDTH;
+        float ortho_size_y = (float)WINDOW_HEIGHT;
     
         // gluOrtho2D sets up a two-dimensional orthographic viewing region.
         // This is equivalent to calling glOrtho with near = -1 and far = 1 .
@@ -106,6 +108,8 @@ int main(int argc, const char * argv[])
 
         glBegin(GL_QUADS);
         {
+            const float ratio = 2.0f * ((float)WINDOW_WIDTH / (float)FRAMES_PER_BUFFER);
+
             for(size_t i = 0; i < FRAMES_PER_BUFFER / 2; ++i)
             {
                 float absVal = (float)abs(graph[i]);
@@ -115,10 +119,10 @@ int main(int argc, const char * argv[])
                     absVal / 150, 
                     1.0f);
 
-                glVertex2f( (float)2*i, 0.0f );
-                glVertex2f( (float)2*(i+1), 0.0f );
-                glVertex2f( (float)2*(i+1), abs(graph[i]) * 3.0f );
-                glVertex2f( (float)2*i, abs(graph[i]) * 3.0f );
+                glVertex2f( (float)ratio*i, 0.0f );
+                glVertex2f( (float)ratio*(i+1), 0.0f );
+                glVertex2f( (float)ratio*(i+1), abs(graph[i]) * 3.0f );
+                glVertex2f( (float)ratio*i, abs(graph[i]) * 3.0f );
             }
         }
         glEnd();
