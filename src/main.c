@@ -196,13 +196,13 @@ static int callback(
     kiss_fft_cpx complex_input[frame_count];
     kiss_fft_cpx complex_output[frame_count];
 
-    for(size_t i = 0, j = 0; i < frame_count; ++i, ++j)
+    for(size_t i = 0; i < frame_count; ++i)
     {
         float multiplier = 0.5f * 
-            (1.0f - cos(2.0f * M_PI * j / (frame_count-1)));
+            (1.0f - cos(2.0f * M_PI * i / (frame_count-1)));
 
-        complex_input[j].r = multiplier * tmp[i];
-        complex_input[j].i = 0.0f;
+        complex_input[i].r = multiplier * tmp[i];
+        complex_input[i].i = 0.0f;
     }
 
     FFT(complex_input, frame_count, complex_output);
