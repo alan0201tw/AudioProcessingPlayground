@@ -1,0 +1,20 @@
+# folders
+.vscode/*
+.vs/*
+bin/*
+bin-int/*
+
+# executables
+main
+*.exe
+
+# Visual studio solution/project files
+*.sln
+*.vcxproj*
+
+# shared objects and cache for testing
+*.so
+*cache*
+tests/bin/*
+tests/test
+tests/*.png

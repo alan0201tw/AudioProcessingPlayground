@@ -23,7 +23,7 @@
 
 #include "util.h"
 
-#define FRAMES_PER_BUFFER (512)
+#define FRAMES_PER_BUFFER (64)
 #define WINDOW_WIDTH (256)
 #define WINDOW_HEIGHT (512)
 
@@ -41,8 +41,8 @@ int main(int argc, const char * argv[])
     PaError error;
     callback_data_s data;
         
-    // const char* fileName = "audio_clips/sample.wav";
-    const char* fileName = "audio_clips/sample_music.wav";
+    const char* fileName = "audio_clips/sample.wav";
+    // const char* fileName = "audio_clips/sample_music.wav";
 
     fprintf(stderr, "Using file name = %s\n", fileName);
 
@@ -116,13 +116,13 @@ int main(int argc, const char * argv[])
                 
                 glColor3f(
                     (float)i / (FRAMES_PER_BUFFER / 2), 
-                    absVal / 150, 
+                    0.0f, 
                     1.0f);
 
                 glVertex2f( (float)ratio*i, 0.0f );
                 glVertex2f( (float)ratio*(i+1), 0.0f );
-                glVertex2f( (float)ratio*(i+1), abs(graph[i]) * 3.0f );
-                glVertex2f( (float)ratio*i, abs(graph[i]) * 3.0f );
+                glVertex2f( (float)ratio*(i+1), absVal * 3.0f );
+                glVertex2f( (float)ratio*i, absVal * 3.0f );
             }
         }
         glEnd();
